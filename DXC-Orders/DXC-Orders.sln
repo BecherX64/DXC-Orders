@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DXCOrders", "DXC-Orders\DXCOrders.csproj", "{FE43D0EF-845F-46B6-8FD5-55E7E673E2BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DXCOrderChecker", "DXC-Order-Checker\DXCOrderChecker.csproj", "{00FC0345-A7F1-473A-8A57-402E27C57B43}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE43D0EF-845F-46B6-8FD5-55E7E673E2BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE43D0EF-845F-46B6-8FD5-55E7E673E2BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE43D0EF-845F-46B6-8FD5-55E7E673E2BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE43D0EF-845F-46B6-8FD5-55E7E673E2BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00FC0345-A7F1-473A-8A57-402E27C57B43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00FC0345-A7F1-473A-8A57-402E27C57B43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00FC0345-A7F1-473A-8A57-402E27C57B43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00FC0345-A7F1-473A-8A57-402E27C57B43}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7E6F7BE7-A8E7-421A-A5D3-825F01FFF9D8}
+	EndGlobalSection
+EndGlobal
