@@ -8,7 +8,6 @@ namespace DemandTrackerForm
 
     public partial class Order
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int Id { get; set; }
 
         [Required]
@@ -32,5 +31,7 @@ namespace DemandTrackerForm
         public string Status { get; set; }
 
         public string Note { get; set; }
+
+        public bool? LockStatus { get; set; }
     }
 }

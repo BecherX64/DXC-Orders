@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DemandTrackerDBModel.cs" />
+    <Compile Include="DemandTrackerDBModelNew.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

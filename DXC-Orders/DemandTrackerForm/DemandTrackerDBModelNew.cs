@@ -5,10 +5,10 @@ namespace DemandTrackerForm
 	using System.ComponentModel.DataAnnotations.Schema;
 	using System.Linq;
 
-	public partial class DemandTrackerDBModel : DbContext
+	public partial class DemandTrackerDBModelNew : DbContext
 	{
-		public DemandTrackerDBModel()
-			: base("name=DemandTrackerDBModel")
+		public DemandTrackerDBModelNew()
+			: base("name=DemandTrackerDBModelNew")
 		{
 		}
 

@@ -12,8 +12,13 @@ namespace DemandTrackerForm
 {
 	public partial class Form2 : Form
 	{
-		private string[] header = new string[] { "Id", "Creator", "TaskName", "TaskDescription", "CreatedOn", "Assignee", "Status", "Note" };
+		private string[] header = new string[] { "Id", "Creator", "TaskName", "TaskDescription", "CreatedOn", "Assignee", "Status", "Note", "LockStatus" };
 		//private Order currentDemandItemForm2 = new Order();
+		
+		private enum RecordOptions {AddRecord, ModifyRecord}
+		RecordOptions actionToTake;
+
+		private int currentIndex;
 
 		public Form2()
 		{
@@ -21,34 +26,42 @@ namespace DemandTrackerForm
 			
 			InitializeComponent();
 			var createdOn = DateTime.Now;
+
+			actionToTake = RecordOptions.AddRecord;
 			
 			button1.Enabled = false;
-			button3.Enabled = true;
+			button3.Enabled = false;
 			button4.Enabled = false;
 			dataGridView2.RowCount = 1;
-			dataGridView2.ColumnCount = 8;
+			dataGridView2.ColumnCount = 9;
 			dataGridView2.ReadOnly = false;
 			for (int i = 0; i < header.Length; i++)
 			{
 
 				dataGridView2.Columns[i].Name = header[i];
-				if (i == 0 || i == 4)
+				if (i == 0 || i == 4 || i == 8)
 				{
 					dataGridView2.Rows[0].Cells[i].ReadOnly = true;
 				}
 			}
 			dataGridView2.Rows[0].Cells[4].Value = createdOn;
+			dataGridView2.Rows[0].Cells[8].Value = false;
+			ShowStatusForm2(actionToTake.ToString());
 		}
 
+		//not used !!!
+		/*
 		public Form2(DataGridViewRow selectedRow)
 			: this()
 		{
-			button3.Enabled = true;
-			button4.Enabled = true;
+			
+			button1.Enabled = false;
+			button3.Enabled = false;
+			button4.Enabled = false;
 			dataGridView2.RowCount = 1;
 			dataGridView2.ColumnCount = selectedRow.Cells.Count;
 			dataGridView2.ReadOnly = false;
-			
+			currentIndex = -1;
 
 			for (int i = 0; i < selectedRow.Cells.Count; i++)
 			{
@@ -65,30 +78,46 @@ namespace DemandTrackerForm
 					richTextBox1.Text += "Index:" + i + " - Value: " + selectedRow.Cells[i].Value + "\n";
 				}
 
-				if (i == 0 || i == 4)
+				if (i == 0 || i == 4 || i == 8)
 				{
 					dataGridView2.Rows[0].Cells[i].ReadOnly = true;
 				}
 			}
+			ShowStatusForm2(actionToTake.ToString());
 		}
+		*/
 
 		public Form2(Order currentDemandItem)
 			: this()
 		{
-			
-			button1.Enabled = true;
+			actionToTake = RecordOptions.ModifyRecord;
+			button1.Enabled = false;
 			button3.Enabled = false;
 			button4.Enabled = false;
+			currentIndex = currentDemandItem.Id;
 
 			ShowDBRecordInGridView(currentDemandItem);
+			ShowStatusForm2(actionToTake.ToString());
 		}
 
 		private void button1_Click(object sender, EventArgs e)
 		{
 
-			//todo Modify Current Record
-			//create new method - Get Order from GridView ex: private Order GetDemandFromGridView()
-			ShowStatusForm2("Button 1 - Clicked");
+			ShowStatusForm2("ModifyRecord - In progress ...");
+			Order orderToModify = GetOrderFromGridView();
+			orderToModify.Id = currentIndex;
+			orderToModify.LockStatus = true;
+			//ShowDBRecordInGridView(orderToModify);
+
+			if (ModifyDemandInDB(orderToModify))
+			{
+				ShowStatusForm2("Record was succesfully modified in DB.");
+			}
+			else
+			{
+				ShowStatusForm2("Record was NOT modified in DB.");
+			}
+
 		}
 
 		private void button2_Click(object sender, EventArgs e)
@@ -96,6 +125,22 @@ namespace DemandTrackerForm
 			//this.IsAccessible = false;
 			//Form2 form2 = new Form2();
 			//form2.Show();
+			if (!(currentIndex == -1))
+			{
+				var dbContext = new DemandTrackerDBModelNew();
+
+				try
+				{
+					var selectedDemandRecord = (from db in dbContext.Orders where db.Id == currentIndex select db).SingleOrDefault();
+					selectedDemandRecord.LockStatus = false;
+					dbContext.SaveChanges();
+				}
+				catch (Exception ex)
+				{
+					ShowStatusForm2("Unable to unlock item in DB with index:" + currentIndex + ". Error:" + ex.Message);
+				}
+			}
+
 			this.Close();
 			
 		}
@@ -113,66 +158,142 @@ namespace DemandTrackerForm
 		private void ResizeForm2Objects()
 		{
 			var formSize = this.Size;
-			dataGridView2.Size = new Size (formSize.Width - (3*button1.Location.X), dataGridView2.Size.Height);
+			dataGridView2.Size = new Size (formSize.Width - 3*dataGridView2.Location.X, dataGridView2.Size.Height);
 			ShowStatusForm2("FormSize:" + formSize.ToString() + " - DataGridSize:" + dataGridView2.Size.ToString());
 		}
 
 		private void dataGridView2_CellEndEdit(object sender, DataGridViewCellEventArgs e)
 		{
-			ShowStatusForm2("Current Cell Edited:" +dataGridView2.CurrentCell.ColumnIndex.ToString());
+			ShowStatusForm2("Current Cell Edited:" + dataGridView2.CurrentCell.ColumnIndex.ToString());
+
+			switch (actionToTake)
+			{
+				case RecordOptions.AddRecord:
+					if (GridViewDataConsistency())
+					{
+						//enable button3
+						button3.Enabled = true;
+					}
+					else
+					{
+						button3.Enabled = false;
+					}
+					break;
+
+				case RecordOptions.ModifyRecord:
+					if (GridViewDataConsistency())
+					{
+						//enable button1
+						button1.Enabled = true;
+					}
+					else
+					{
+						button1.Enabled = false;
+					}
+					break;
+
+				default:
+					break;
+			}
+
 			
+		}
+
+		private bool GridViewDataConsistency()
+		{
+			
+			bool dataConsistencyStatus = true;
+			richTextBox1.Text = "";
+			for (int i = 1; i < dataGridView2.Rows[0].Cells.Count; i++)
+			{
+
+				if (i == 5 || i == 7 || i == 8)
+				{
+					//do nothing
+				}
+				else
+				{
+					if ((dataGridView2.Rows[0].Cells[i].Value == null))
+					{
+						dataConsistencyStatus = false;
+						richTextBox1.Text += "False: DataGridView:" + 0 + "," + i + ":" + dataGridView2.Rows[0].Cells[i].Value + "\n";
+					}
+					else
+					{
+						richTextBox1.Text += "True: DataGridView:" + 0 + "," + i + ":" + dataGridView2.Rows[0].Cells[i].Value + "\n";
+					}
+				}
+			}
+
+			return dataConsistencyStatus;
+
 		}
 
 		private void button3_Click(object sender, EventArgs e)
 		{
-			if (UpdateDBRecord())
+			ShowDBRecordInGridView(GetOrderFromGridView());
+			if (AddNewDemandIntoDB(GetOrderFromGridView()))
 			{
-				ShowStatusForm2("DB record updated successfuly");
+				ShowStatusForm2("DB record Added successfuly");
+				this.Close();
 			}
-
 		}
 
-		private bool UpdateDBRecord()
+		private Order GetOrderFromGridView()
 		{
-			//rename method to private bool GetGridViewFromDemand(Order DemandToShow)
-			//save order class into DB as separate method private bool SaveDemandIntoDB(Order DemandToSave)
+			var orderFromGridView = new Order();
 
-
-			var dbContext = new DemandTrackerDBModel();
-			int maxId = (from db in dbContext.Orders select db.Id).Max();
-			var demandToSave = new Order();
 			
-			demandToSave.Id = maxId+1;
-			demandToSave.Creator = dataGridView2.Rows[0].Cells[1].Value.ToString();
-			demandToSave.TaskName = dataGridView2.Rows[0].Cells[2].Value.ToString();
-			demandToSave.TaskDescription = dataGridView2.Rows[0].Cells[3].Value.ToString();
-			demandToSave.CreatedOn = DateTime.Parse(dataGridView2.Rows[0].Cells[4].Value.ToString());
+			orderFromGridView.Creator = dataGridView2.Rows[0].Cells[1].Value.ToString();
+			orderFromGridView.TaskName = dataGridView2.Rows[0].Cells[2].Value.ToString();
+			orderFromGridView.TaskDescription = dataGridView2.Rows[0].Cells[3].Value.ToString();
+			orderFromGridView.CreatedOn = DateTime.Parse(dataGridView2.Rows[0].Cells[4].Value.ToString());
 			if (!(dataGridView2.Rows[0].Cells[5].Value == null))
 			{
-				demandToSave.Assignee = dataGridView2.Rows[0].Cells[5].Value.ToString();
+				orderFromGridView.Assignee = dataGridView2.Rows[0].Cells[5].Value.ToString();
 			}
 			else
 			{
-				demandToSave.Assignee = "";
+				orderFromGridView.Assignee = "";
 			}
 			if (!(dataGridView2.Rows[0].Cells[6].Value == null))
 			{
-				demandToSave.Status = dataGridView2.Rows[0].Cells[6].Value.ToString();
+				orderFromGridView.Status = dataGridView2.Rows[0].Cells[6].Value.ToString();
 			}
 			else
 			{
-				demandToSave.Status = "New";
+				orderFromGridView.Status = "New";
 			}
 			if (!(dataGridView2.Rows[0].Cells[7].Value == null))
 			{
-				demandToSave.Note = dataGridView2.Rows[0].Cells[7].Value.ToString();
+				orderFromGridView.Note = dataGridView2.Rows[0].Cells[7].Value.ToString();
 			}
 			else
 			{
-				demandToSave.Note = "";
+				orderFromGridView.Note = "";
 			}
 
-			ShowDBRecordInGridView(demandToSave);
+
+
+			if (dataGridView2.Rows[0].Cells[8].Value.ToString() == "True")
+			{
+				orderFromGridView.LockStatus = true;
+			}
+			else
+			{
+				orderFromGridView.LockStatus = false;
+			}
+
+
+
+			return orderFromGridView;
+		}
+
+		private bool AddNewDemandIntoDB(Order demandToSave)
+		{
+			
+			var dbContext = new DemandTrackerDBModelNew();
+			demandToSave.LockStatus = false;
 			try
 			{
 				dbContext.Orders.Add(demandToSave);
@@ -188,6 +309,38 @@ namespace DemandTrackerForm
 			return false;
 		}
 
+		private bool ModifyDemandInDB(Order demandToModify)
+		{
+			var dbContext = new DemandTrackerDBModelNew();
+			var demandInDB = (from item in dbContext.Orders where item.Id == currentIndex select item).SingleOrDefault();
+
+			
+			int index = 0;
+			foreach (var item in demandInDB.GetType().GetProperties())
+			{
+
+				object objValue = demandToModify.GetType().GetProperty(item.Name).GetValue(demandToModify, null);
+				demandInDB.GetType().GetProperty(item.Name).SetValue(demandInDB, objValue);
+				++index;
+			}
+			
+			demandInDB.LockStatus = true;
+			ShowDBRecordInGridView(demandInDB);			
+
+			try
+			{
+				dbContext.SaveChanges();
+				
+				return true;
+			}
+			catch (Exception ex)
+			{
+
+				ShowStatusForm2("Error during modify record: " + ex.Message);
+			}
+			return false;
+		}
+
 
 		private void ShowDBRecordInGridView(Order orderToShowInGridView)
 		{
@@ -195,11 +348,17 @@ namespace DemandTrackerForm
 
 			dataGridView2.ReadOnly = false;
 
+			richTextBox1.Text = "";
+
 			int index = 0;
 			foreach (var item in orderToShowInGridView.GetType().GetProperties())
 			{
 
 				object objValue = orderToShowInGridView.GetType().GetProperty(item.Name).GetValue(orderToShowInGridView, null);
+				if (objValue == null)
+				{
+					objValue = "";
+				}
 				richTextBox1.Text += "PropertyName:" + item.Name + " - "
 					+ "Value:" + objValue.ToString() + "\n";
 				dataGridView2.Rows[0].Cells[index].Value = objValue;

@@ -1,4 +1,6 @@
-﻿namespace DemandTrackerForm
+﻿using System.Windows.Forms;
+
+namespace DemandTrackerForm
 {
 	partial class Form1
 	{
@@ -62,6 +64,7 @@
 			this.dataGridView1.ReadOnly = true;
 			this.dataGridView1.Size = new System.Drawing.Size(876, 430);
 			this.dataGridView1.TabIndex = 2;
+			this.dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 			this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
 			this.dataGridView1.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellDoubleClick);
 			// 
@@ -71,7 +74,7 @@
 			this.button2.Name = "button2";
 			this.button2.Size = new System.Drawing.Size(137, 23);
 			this.button2.TabIndex = 3;
-			this.button2.Text = "Modify Data";
+			this.button2.Text = "Modify Selected Record";
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
