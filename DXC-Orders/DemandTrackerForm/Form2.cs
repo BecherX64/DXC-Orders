@@ -31,7 +31,9 @@ namespace DemandTrackerForm
 			
 			button1.Enabled = false;
 			button3.Enabled = false;
-			button4.Enabled = false;
+			this.ControlBox = false;
+			
+			this.Text = RecordOptions.AddRecord.ToString();
 			dataGridView2.RowCount = 1;
 			dataGridView2.ColumnCount = 9;
 			dataGridView2.ReadOnly = false;
@@ -93,7 +95,8 @@ namespace DemandTrackerForm
 			actionToTake = RecordOptions.ModifyRecord;
 			button1.Enabled = false;
 			button3.Enabled = false;
-			button4.Enabled = false;
+			
+			this.Text = RecordOptions.ModifyRecord.ToString();
 			currentIndex = currentDemandItem.Id;
 
 			ShowDBRecordInGridView(currentDemandItem);
@@ -122,9 +125,30 @@ namespace DemandTrackerForm
 
 		private void button2_Click(object sender, EventArgs e)
 		{
-			//this.IsAccessible = false;
-			//Form2 form2 = new Form2();
-			//form2.Show();
+			
+			switch (actionToTake)
+			{
+				case RecordOptions.AddRecord:
+					this.Close();
+					break;
+
+				case RecordOptions.ModifyRecord:
+					if (CloseForm2ModifyRecord())
+					{
+						this.Close();
+					}
+					break;
+
+				default:
+					break;
+			}
+			
+			this.Close();
+
+		}
+
+		private bool CloseForm2ModifyRecord()
+		{
 			if (!(currentIndex == -1))
 			{
 				var dbContext = new DemandTrackerDBModelNew();
@@ -134,15 +158,16 @@ namespace DemandTrackerForm
 					var selectedDemandRecord = (from db in dbContext.Orders where db.Id == currentIndex select db).SingleOrDefault();
 					selectedDemandRecord.LockStatus = false;
 					dbContext.SaveChanges();
+					//MessageBox.Show("Saved into DB");
+					return true;
 				}
 				catch (Exception ex)
 				{
 					ShowStatusForm2("Unable to unlock item in DB with index:" + currentIndex + ". Error:" + ex.Message);
+					return false;
 				}
 			}
-
-			this.Close();
-			
+			return false;
 		}
 
 		private void ShowStatusForm2(string statusForm2)
@@ -159,7 +184,18 @@ namespace DemandTrackerForm
 		{
 			var formSize = this.Size;
 			dataGridView2.Size = new Size (formSize.Width - 3*dataGridView2.Location.X, dataGridView2.Size.Height);
-			ShowStatusForm2("FormSize:" + formSize.ToString() + " - DataGridSize:" + dataGridView2.Size.ToString());
+			//richTextBox1.Location = new Point(richTextBox1.Location.X , dataGridView2.Height);
+			//label8.Location = new Point (label8.Location.X, dataGridView2.Height + richTextBox1.Height + 4 * label8.Height);
+			button2.Location = new Point (button3.Location.X + dataGridView2.Width - button2.Width , button1.Location.Y);
+
+			if (formSize.Width < 3 * button1.Width)
+			{
+				this.ClientSize = new Size(4 * button1.Width,formSize.Height);
+			}
+
+			ShowStatusForm2("Button1:" + button1.Location.ToString() + " - Button2:" + button2.Location.ToString() +" - FormSize:" + formSize.ToString() + " - DataGridSize:" + dataGridView2.Size.ToString());
+
+
 		}
 
 		private void dataGridView2_CellEndEdit(object sender, DataGridViewCellEventArgs e)
@@ -231,12 +267,25 @@ namespace DemandTrackerForm
 
 		private void button3_Click(object sender, EventArgs e)
 		{
+			if (CloseForm2AddRecord())
+			{
+				this.Close();
+			}
+		}
+
+		private bool CloseForm2AddRecord()
+		{
 			ShowDBRecordInGridView(GetOrderFromGridView());
 			if (AddNewDemandIntoDB(GetOrderFromGridView()))
 			{
 				ShowStatusForm2("DB record Added successfuly");
-				this.Close();
+				return true;
 			}
+			else
+			{
+				return false;
+			}
+			
 		}
 
 		private Order GetOrderFromGridView()

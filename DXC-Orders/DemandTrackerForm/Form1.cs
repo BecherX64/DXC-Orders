@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -36,9 +37,11 @@ namespace DemandTrackerForm
 		private void LoadDataFromDB()
 		{
 			var dbContext = new DemandTrackerDBModelNew();
-			var queryDB = from db in dbContext.Orders select db;
+			
 			try
 			{
+				showStatusForm1("Trying load data from DB ...");
+				var queryDB = from db in dbContext.Orders select db;
 				dataGridView1.DataSource = queryDB.ToList();
 				showStatusForm1(queryDB.Count().ToString() + ": items successfully loaded.");
 				button2.Enabled = true;
@@ -63,26 +66,44 @@ namespace DemandTrackerForm
 			
 			dataGridView1.Size = new Size(formSize.Width - (3*button1.Location.X),formSize.Height - button1.Location.Y - (8*label1.Height));
 			label1.Location = new Point(button1.Location.X, dataGridView1.Height + 4*label1.Height );
+			button4.Location = new Point(button1.Location.X + dataGridView1.Width - button4.Width , button1.Location.Y);
+
+			if (formSize.Width < 5 * button1.Width)
+			{
+				this.ClientSize = new Size(5 * button1.Width, formSize.Height);
+			}
+			
 			/*
-			showStatusForm1( "Button:" + button1.Location.ToString() + " - " + 
+			showStatusForm1( "Button4:" + button4.Location.ToString() + " - " + 
 				"Form:" + formSize.ToString() + " - " + 
 				"DataGrid:" + dataGridView1.Size.ToString());
 			*/
+
 		}
 
+		//Modify Selected Record
 		private void button2_Click(object sender, EventArgs e)
 		{
 			this.updateRecord();
+			
 		}
 
 		private void f_FormClosed(object sender, FormClosedEventArgs e)
 		{
 			this.IsAccessible = true;
 			this.Show();
-			this.LoadDataFromDB();
+			LoadDataFromDB();
+			
 		}
 
+		//Add new record
 		private void button3_Click(object sender, EventArgs e)
+		{
+			this.AddRecord();
+
+		}
+
+		private void AddRecord()
 		{
 			this.Hide();
 			//this.IsAccessible = false;
@@ -90,7 +111,7 @@ namespace DemandTrackerForm
 			form2.Show();
 			form2.FormClosed += f_FormClosed;
 		}
-
+		
 		private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
 		{
 			showStatusForm1("Selected Row: " + ((int)dataGridView1.CurrentCell.RowIndex + 1).ToString());
@@ -126,6 +147,7 @@ namespace DemandTrackerForm
 				Form2 form2 = new Form2(selectedDemandRecord);
 				form2.Show();
 				form2.FormClosed += f_FormClosed;
+				
 			}
 			else
 			{
@@ -134,9 +156,22 @@ namespace DemandTrackerForm
 
 		}
 
+
+
 		private void showStatusForm1(string statusFrom1)
 		{
 			label1.Text = statusFrom1;
+		}
+
+		private void Form1_Load(object sender, EventArgs e)
+		{
+
+		}
+
+		private void button4_Click(object sender, EventArgs e)
+		{
+			//close Form1
+			this.Close();
 		}
 	}
 
