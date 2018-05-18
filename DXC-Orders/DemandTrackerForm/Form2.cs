@@ -32,6 +32,11 @@ namespace DemandTrackerForm
 			button1.Enabled = false;
 			button3.Enabled = false;
 			this.ControlBox = false;
+
+			DataGridViewCellStyle headerStyle = dataGridView2.ColumnHeadersDefaultCellStyle;
+			headerStyle.BackColor = Color.Navy;
+			headerStyle.ForeColor = Color.White;
+			headerStyle.Font = new Font(dataGridView2.Font, FontStyle.Bold);
 			
 			this.Text = RecordOptions.AddRecord.ToString();
 			dataGridView2.RowCount = 1;
@@ -49,6 +54,19 @@ namespace DemandTrackerForm
 			dataGridView2.Rows[0].Cells[4].Value = createdOn;
 			dataGridView2.Rows[0].Cells[8].Value = false;
 			ShowStatusForm2(actionToTake.ToString());
+			this.Activated += Form2_Activated;
+			
+		}
+
+		private void Form2_Activated(object sender, EventArgs e)
+		{
+			ResizeDataGridColumns();
+		}
+
+		private void ResizeDataGridColumns()
+		{
+			dataGridView2.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+			//ShowStatusForm2("Column Resize Done");
 		}
 
 		//not used !!!
@@ -187,7 +205,7 @@ namespace DemandTrackerForm
 			//richTextBox1.Location = new Point(richTextBox1.Location.X , dataGridView2.Height);
 			//label8.Location = new Point (label8.Location.X, dataGridView2.Height + richTextBox1.Height + 4 * label8.Height);
 			button2.Location = new Point (button3.Location.X + dataGridView2.Width - button2.Width , button1.Location.Y);
-
+			
 			if (formSize.Width < 3 * button1.Width)
 			{
 				this.ClientSize = new Size(4 * button1.Width,formSize.Height);
@@ -201,7 +219,7 @@ namespace DemandTrackerForm
 		private void dataGridView2_CellEndEdit(object sender, DataGridViewCellEventArgs e)
 		{
 			ShowStatusForm2("Current Cell Edited:" + dataGridView2.CurrentCell.ColumnIndex.ToString());
-
+			ResizeDataGridColumns();
 			switch (actionToTake)
 			{
 				case RecordOptions.AddRecord:
@@ -394,8 +412,8 @@ namespace DemandTrackerForm
 		private void ShowDBRecordInGridView(Order orderToShowInGridView)
 		{
 			dataGridView2.RowCount = 1;
-
 			dataGridView2.ReadOnly = false;
+			
 
 			richTextBox1.Text = "";
 
@@ -413,6 +431,7 @@ namespace DemandTrackerForm
 				dataGridView2.Rows[0].Cells[index].Value = objValue;
 				++index;
 			}
+			//dataGridView2.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
 		}
 
 	}

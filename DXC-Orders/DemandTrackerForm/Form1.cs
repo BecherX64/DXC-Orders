@@ -26,6 +26,10 @@ namespace DemandTrackerForm
 			label1.Location = new Point(button1.Location.X, dataGridView1.Height);
 			button2.Enabled = false;
 			button3.Enabled = false;
+			DataGridViewCellStyle headerStyle = dataGridView1.ColumnHeadersDefaultCellStyle;
+			headerStyle.BackColor = Color.Navy;
+			headerStyle.ForeColor = Color.White;
+			headerStyle.Font = new Font(dataGridView1.Font, FontStyle.Bold);
 			ResizeForm1Objects();
 		}
 
@@ -37,7 +41,59 @@ namespace DemandTrackerForm
 		private void LoadDataFromDB()
 		{
 			var dbContext = new DemandTrackerDBModelNew();
+			//TODO - replace Load method using DataTables
+
+			//load data
+			try
+			{
+				var myGridSource = from db in dbContext.Orders select db;
+
+				DataTable myDataTable = new DataTable();
+
+
+				//Add columns into GridView
+				var newColumn = myGridSource.FirstOrDefault();
+				int i = 1;
+				foreach (var item in newColumn.GetType().GetProperties())
+				{
+					DataColumn dataColumnToAdd = new DataColumn(item.Name);
+					myDataTable.Columns.Add(dataColumnToAdd);
+					i++;
+				}
+
+				//Add data into GridView
+				foreach (var currentRow in myGridSource)
+				{
+					object[] newRow = new object[currentRow.GetType().GetProperties().Count()];
+					int index = 0;
+					foreach (var item in currentRow.GetType().GetProperties())
+					{
+						newRow[index] = currentRow.GetType().GetProperty(item.Name).GetValue(currentRow, null);
+						index++;
+					}
+					myDataTable.LoadDataRow(newRow, true);
+					showStatusForm1("New Row Added:" + newRow);
+				}
+
+				dataGridView1.DataSource = myDataTable;
+
+				dataGridView1.ReadOnly = true;
+				
+				showStatusForm1(dataGridView1.RowCount.ToString() + " row(s) loaded from DB.");
+				button2.Enabled = true;
+				button3.Enabled = true;
+				this.dataGridView1.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+			}
+			catch (Exception ex)
+			{
+
+				showStatusForm1("Unlable to load data from DB. Error message:" + ex.Message);
+			}
 			
+
+			
+			//Old way
+			/*
 			try
 			{
 				showStatusForm1("Trying load data from DB ...");
@@ -53,6 +109,7 @@ namespace DemandTrackerForm
 
 				showStatusForm1("Unable to load data: " + ex.Message);
 			}
+			*/
 		}
 
 		private void Form1_SizeChanged(object sender, EventArgs e)
@@ -120,38 +177,51 @@ namespace DemandTrackerForm
 
 		private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
 		{
-			this.updateRecord();
+			if (button2.Enabled)
+			{
+				this.updateRecord();
+			}
 		}
 
 		private void updateRecord()
 		{
-			int currentId = (int)dataGridView1.Rows[dataGridView1.CurrentCell.RowIndex].Cells[0].Value;
+			//int currentId = (int)dataGridView1.Rows[dataGridView1.CurrentCell.RowIndex].Cells[0].Value.ToString();
+
+			int currentId = Int32.Parse(dataGridView1.Rows[dataGridView1.CurrentCell.RowIndex].Cells[0].Value.ToString());
+
 			var dbContext = new DemandTrackerDBModelNew();
-			var selectedDemandRecord = (from db in dbContext.Orders where db.Id == currentId select db).SingleOrDefault();
-
-			//showStatusForm1(selectedDemandRecord.LockStatus.Value.ToString());
-
-			if (!(selectedDemandRecord.LockStatus.Value))
+			try
 			{
-				selectedDemandRecord.LockStatus = true;
-				try
-				{
-					dbContext.SaveChanges();
-				}
-				catch (Exception ex)
-				{
+				var selectedDemandRecord = (from db in dbContext.Orders where db.Id == currentId select db).SingleOrDefault();
 
-					showStatusForm1("Unable to Lock row:" + dataGridView1.CurrentCell.RowIndex + " in DB. Error:" + ex.Message);
+				//showStatusForm1(selectedDemandRecord.LockStatus.Value.ToString());
+
+				if (!(selectedDemandRecord.LockStatus.Value))
+				{
+					selectedDemandRecord.LockStatus = true;
+					try
+					{
+						dbContext.SaveChanges();
+					}
+					catch (Exception ex2)
+					{
+
+						showStatusForm1("Unable to Lock row:" + dataGridView1.CurrentCell.RowIndex + " in DB. Error:" + ex2.Message);
+					}
+					this.Hide();
+					Form2 form2 = new Form2(selectedDemandRecord);
+					form2.Show();
+					form2.FormClosed += f_FormClosed;
+
 				}
-				this.Hide();
-				Form2 form2 = new Form2(selectedDemandRecord);
-				form2.Show();
-				form2.FormClosed += f_FormClosed;
-				
+				else
+				{
+					showStatusForm1("Row:" + (dataGridView1.CurrentCell.RowIndex + 1) + " is locked by another user or process.");
+				}
 			}
-			else
+			catch (Exception ex1)
 			{
-				showStatusForm1("Row:" + (dataGridView1.CurrentCell.RowIndex + 1) + " is locked by another user or process.");
+				showStatusForm1("Error while loading selected row from DB to modify:" + ex1.Message);
 			}
 
 		}

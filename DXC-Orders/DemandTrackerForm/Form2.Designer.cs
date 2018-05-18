@@ -1,4 +1,7 @@
-﻿namespace DemandTrackerForm
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace DemandTrackerForm
 {
 	partial class Form2
 	{
@@ -82,6 +85,7 @@
 			// 
 			this.dataGridView2.AllowUserToAddRows = false;
 			this.dataGridView2.AllowUserToDeleteRows = false;
+			this.dataGridView2.AllowUserToResizeRows = false;
 			this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.dataGridView2.Location = new System.Drawing.Point(12, 42);
 			this.dataGridView2.Name = "dataGridView2";
