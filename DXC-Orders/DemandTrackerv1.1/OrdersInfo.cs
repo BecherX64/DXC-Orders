@@ -7,21 +7,15 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DemandTrackerForm
+namespace DemandTrackerv1._1
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class Order
+    public partial class OrdersInfo
     {
         public int Id { get; set; }
-        public string Creator { get; set; }
-        public string TaskName { get; set; }
-        public string TaskDescription { get; set; }
-        public System.DateTime CreatedOn { get; set; }
-        public string Assignee { get; set; }
-        public string Status { get; set; }
-        public string Note { get; set; }
-        public Nullable<bool> LockStatus { get; set; }
+        public string header { get; set; }
+        public string dropdownmenu { get; set; }
     }
 }

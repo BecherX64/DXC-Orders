@@ -12,9 +12,11 @@ namespace DemandTrackerForm
 {
 	public partial class Form2 : Form
 	{
-		private string[] header = new string[] { "Id", "Creator", "TaskName", "TaskDescription", "CreatedOn", "Assignee", "Status", "Note", "LockStatus" };
+		//private string[] header = new string[] { "Id", "Creator", "TaskName", "TaskDescription", "CreatedOn", "Assignee", "Status", "Note", "LockStatus" };
 		//private Order currentDemandItemForm2 = new Order();
-		
+
+		//private string[] dropDownMenu = new string[] { "Item01", "Item002" };
+
 		private enum RecordOptions {AddRecord, ModifyRecord}
 		RecordOptions actionToTake;
 
@@ -39,23 +41,135 @@ namespace DemandTrackerForm
 			headerStyle.Font = new Font(dataGridView2.Font, FontStyle.Bold);
 			
 			this.Text = RecordOptions.AddRecord.ToString();
-			dataGridView2.RowCount = 1;
-			dataGridView2.ColumnCount = 9;
+			
+			//read header from SQL
+			
+			string[] gridHeader = readGridHeader();
+			string[] statusCBCell = readstatusCBCell();
+
+			//dataGridView2.RowCount = 1;
+			dataGridView2.ColumnCount = gridHeader.Length;
 			dataGridView2.ReadOnly = false;
-			for (int i = 0; i < header.Length; i++)
+
+			DataGridViewRow sampleRow = new DataGridViewRow();
+
+			for (int i = 0; i < gridHeader.Length; i++)
 			{
 
-				dataGridView2.Columns[i].Name = header[i];
-				if (i == 0 || i == 4 || i == 8)
+				dataGridView2.Columns[i].Name = gridHeader[i];
+				if (i == 0)
 				{
-					dataGridView2.Rows[0].Cells[i].ReadOnly = true;
+					DataGridViewTextBoxCell textCell = new DataGridViewTextBoxCell();
+					textCell.Value = null;
+					sampleRow.Cells.Add(textCell);
+				}
+				else
+				{
+					if (i == 4 || i == 8)
+					{
+						DataGridViewTextBoxCell textCell = new DataGridViewTextBoxCell();
+						textCell.Value = null;
+						sampleRow.Cells.Add(textCell);
+					}
+					else
+					{
+						if (i == 6)
+						{
+							DataGridViewComboBoxCell cbCell = new DataGridViewComboBoxCell();
+							cbCell.Items.AddRange(statusCBCell);
+							cbCell.Value = statusCBCell[0];
+							sampleRow.Cells.Add(cbCell);
+						}
+						else
+						{
+							DataGridViewTextBoxCell textCell = new DataGridViewTextBoxCell();
+							textCell.Value = null;
+							sampleRow.Cells.Add(textCell);
+						}
+					}	
 				}
 			}
+			dataGridView2.Rows.Add(sampleRow);
+			//TODO ComboBox as GridCell
+			
 			dataGridView2.Rows[0].Cells[4].Value = createdOn;
 			dataGridView2.Rows[0].Cells[8].Value = false;
+			dataGridView2.Rows[0].Cells[4].ReadOnly = true;
+			dataGridView2.Rows[0].Cells[8].ReadOnly = true;
+			dataGridView2.Rows[0].Cells[0].ReadOnly = true;
+
 			ShowStatusForm2(actionToTake.ToString());
 			this.Activated += Form2_Activated;
+			this.dataGridView2.DataError += this.DataGridView2_DataError;
+
+		}
+
+		public Form2(Order currentDemandItem)
+			//: this()
+		{
+			//replace : this() by real code and fix modify issues
+
+			actionToTake = RecordOptions.ModifyRecord;
+			button1.Enabled = false;
+			button3.Enabled = false;
+
+			this.Text = RecordOptions.ModifyRecord.ToString();
+			currentIndex = currentDemandItem.Id;
+
+			ShowDBRecordInGridView(currentDemandItem);
+			ShowStatusForm2(actionToTake.ToString());
+
+			this.Activated += Form2_Activated;
+			this.dataGridView2.DataError += this.DataGridView2_DataError;
+		}
+
+		private string[] readstatusCBCell()
+		{
+			var statusContext = new DemandTrackerDBModelv13();
+			//TODO implement Try {}
+			var statusCB = from db in statusContext.OrdersInfoes where db.dropdownmenu != null select db.dropdownmenu;
+			int index = 0;
+			string[] status = new string[statusCB.Count()];
+
+
+			foreach (var item in statusCB)
+			{
+				if (item != null)
+				{
+					status[index] = item.ToString();
+					index++; 
+				}
+			}
+
+			return status;
+		}
+
+
+		private void DataGridView2_DataError(object sender, DataGridViewDataErrorEventArgs anError)
+		{
+			ShowStatusForm2("Error:" + anError + "\n");
+			richTextBox1.Text += "DataError:" + anError;
+		}
+
+		private string[] readGridHeader()
+		{
 			
+
+			var headerContext = new DemandTrackerDBModelv13();
+
+			//TODO implement Try {}
+			var gridHeader = from db in headerContext.OrdersInfoes select db.header;
+			int index = 0;
+			string[] header = new string[gridHeader.Count()];
+			
+
+			foreach (var item in gridHeader)
+			{
+				header[index] = item.ToString();
+				index++;
+			}
+
+			return header;
 		}
 
 		private void Form2_Activated(object sender, EventArgs e)
@@ -107,19 +221,7 @@ namespace DemandTrackerForm
 		}
 		*/
 
-		public Form2(Order currentDemandItem)
-			: this()
-		{
-			actionToTake = RecordOptions.ModifyRecord;
-			button1.Enabled = false;
-			button3.Enabled = false;
-			
-			this.Text = RecordOptions.ModifyRecord.ToString();
-			currentIndex = currentDemandItem.Id;
-
-			ShowDBRecordInGridView(currentDemandItem);
-			ShowStatusForm2(actionToTake.ToString());
-		}
+		
 
 		private void button1_Click(object sender, EventArgs e)
 		{
@@ -169,7 +271,7 @@ namespace DemandTrackerForm
 		{
 			if (!(currentIndex == -1))
 			{
-				var dbContext = new DemandTrackerDBModelNew();
+				var dbContext = new DemandTrackerDBModelv13();
 
 				try
 				{
@@ -315,6 +417,7 @@ namespace DemandTrackerForm
 			orderFromGridView.TaskName = dataGridView2.Rows[0].Cells[2].Value.ToString();
 			orderFromGridView.TaskDescription = dataGridView2.Rows[0].Cells[3].Value.ToString();
 			orderFromGridView.CreatedOn = DateTime.Parse(dataGridView2.Rows[0].Cells[4].Value.ToString());
+			orderFromGridView.Status = dataGridView2.Rows[0].Cells[6].Value.ToString();
 			if (!(dataGridView2.Rows[0].Cells[5].Value == null))
 			{
 				orderFromGridView.Assignee = dataGridView2.Rows[0].Cells[5].Value.ToString();
@@ -323,14 +426,7 @@ namespace DemandTrackerForm
 			{
 				orderFromGridView.Assignee = "";
 			}
-			if (!(dataGridView2.Rows[0].Cells[6].Value == null))
-			{
-				orderFromGridView.Status = dataGridView2.Rows[0].Cells[6].Value.ToString();
-			}
-			else
-			{
-				orderFromGridView.Status = "New";
-			}
+			
 			if (!(dataGridView2.Rows[0].Cells[7].Value == null))
 			{
 				orderFromGridView.Note = dataGridView2.Rows[0].Cells[7].Value.ToString();
@@ -339,7 +435,6 @@ namespace DemandTrackerForm
 			{
 				orderFromGridView.Note = "";
 			}
-
 
 
 			if (dataGridView2.Rows[0].Cells[8].Value.ToString() == "True")
@@ -358,9 +453,11 @@ namespace DemandTrackerForm
 
 		private bool AddNewDemandIntoDB(Order demandToSave)
 		{
+
+			var dbContext = new DemandTrackerDBModelv13();
 			
-			var dbContext = new DemandTrackerDBModelNew();
 			demandToSave.LockStatus = false;
+			//demandToSave.Id = 101;
 			try
 			{
 				dbContext.Orders.Add(demandToSave);
@@ -378,7 +475,7 @@ namespace DemandTrackerForm
 
 		private bool ModifyDemandInDB(Order demandToModify)
 		{
-			var dbContext = new DemandTrackerDBModelNew();
+			var dbContext = new DemandTrackerDBModelv13();
 			var demandInDB = (from item in dbContext.Orders where item.Id == currentIndex select item).SingleOrDefault();
 
 			

@@ -54,10 +54,10 @@ namespace DemandTrackerForm
 			// 
 			// richTextBox1
 			// 
-			this.richTextBox1.Location = new System.Drawing.Point(12, 132);
+			this.richTextBox1.Location = new System.Drawing.Point(12, 142);
 			this.richTextBox1.Name = "richTextBox1";
 			this.richTextBox1.ReadOnly = true;
-			this.richTextBox1.Size = new System.Drawing.Size(250, 235);
+			this.richTextBox1.Size = new System.Drawing.Size(250, 225);
 			this.richTextBox1.TabIndex = 13;
 			this.richTextBox1.Text = "";
 			// 
@@ -89,7 +89,7 @@ namespace DemandTrackerForm
 			this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 			this.dataGridView2.Location = new System.Drawing.Point(12, 42);
 			this.dataGridView2.Name = "dataGridView2";
-			this.dataGridView2.Size = new System.Drawing.Size(775, 68);
+			this.dataGridView2.Size = new System.Drawing.Size(775, 94);
 			this.dataGridView2.TabIndex = 1;
 			this.dataGridView2.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView2_CellEndEdit);
 			// 

@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DemandTrackerForm
+namespace DemandTrackerv1._1
 {
     using System;
     using System.Collections.Generic;

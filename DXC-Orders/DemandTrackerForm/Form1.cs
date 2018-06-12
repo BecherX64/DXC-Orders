@@ -40,7 +40,7 @@ namespace DemandTrackerForm
 
 		private void LoadDataFromDB()
 		{
-			var dbContext = new DemandTrackerDBModelNew();
+			var dbContext = new DemandTrackerDBModelv13();
 			//TODO - replace Load method using DataTables
 
 			//load data
@@ -189,7 +189,8 @@ namespace DemandTrackerForm
 
 			int currentId = Int32.Parse(dataGridView1.Rows[dataGridView1.CurrentCell.RowIndex].Cells[0].Value.ToString());
 
-			var dbContext = new DemandTrackerDBModelNew();
+			var dbContext = new DemandTrackerDBModelv13();
+			
 			try
 			{
 				var selectedDemandRecord = (from db in dbContext.Orders where db.Id == currentId select db).SingleOrDefault();
