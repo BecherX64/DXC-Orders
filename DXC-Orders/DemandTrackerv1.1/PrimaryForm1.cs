@@ -954,7 +954,6 @@ namespace DemandTrackerv1._1
 
 		private bool saveRecordToDB()
 		{
-
 			var dbContext = new DXCOrdersDBEntities();
 			int idToModify = Int32.Parse(dgwSecondary.Rows[0].Cells[0].Value.ToString());
 			var recordToSave = (from db in dbContext.Orders where db.Id == idToModify select db).FirstOrDefault();
@@ -964,7 +963,7 @@ namespace DemandTrackerv1._1
 			recordToSave.TaskDescription = dgwSecondary.Rows[0].Cells[3].Value.ToString();
 			recordToSave.CreatedOn = DateTime.Parse(dgwSecondary.Rows[0].Cells[4].Value.ToString());
 			recordToSave.Status = dgwSecondary.Rows[0].Cells[6].Value.ToString();
-
+			
 			if (!(dgwSecondary.Rows[0].Cells[5].Value == null))
 			{
 				recordToSave.Assignee = dgwSecondary.Rows[0].Cells[5].Value.ToString();
@@ -1020,6 +1019,7 @@ namespace DemandTrackerv1._1
 			recordToAddIntoDB.Note = dataGridViewToSave.Rows[0].Cells[7].Value.ToString();
 			recordToAddIntoDB.LockStatus = false;
 
+			
 			try
 			{
 				dbContext.Orders.Add(recordToAddIntoDB);
